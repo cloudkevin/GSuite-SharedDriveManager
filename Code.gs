@@ -4,6 +4,7 @@ function onOpen(){
   .addItem('Update Last Modified Date', 'LastModifiedDate')
   .addItem('Add Organizer Permissions', 'AddPermissions')
   .addItem('Purge Drive', 'PurgeDrive')
+  .addItem('Get Drive Size', 'GetDriveSize')
   .addToUi();
 }
 
@@ -49,4 +50,34 @@ function PurgeDrive(){
     Logger.log('Action Cancelled');
     SpreadsheetApp.getActiveSheet().getRange(updateCell).setValue('');
   }
+}
+
+function GetDriveSize(){
+  var currCell = SpreadsheetApp.getActiveRange().getValue();
+  var updateCell = String.fromCharCode(SpreadsheetApp.getActiveRange().getA1Notation().split('')[0].charCodeAt(0)+6)+SpreadsheetApp.getActiveRange().getA1Notation().substring(1);
+  var folders = DriveApp.getFolderById(currCell).getFolders();
+  var files = DriveApp.getFolderById(currCell).getFiles();
+  var size = 0
+  var folder, file;
+  
+  while(files.hasNext()){
+    file = files.next();
+    size += file.getSize();
+  }
+  while (folders.hasNext()) {
+    var folder = folders.next();
+    var files = folder.getFiles();
+    while (files.hasNext()) {
+      var file = files.next();
+      size += file.getSize();
+    }
+  }
+  SpreadsheetApp.getActiveSheet().getRange(updateCell).setValue(formatSize(size));
+}
+
+//Helper Functions
+function formatSize(a, b) {
+  if(0 == a) return "0 Bytes";
+  var c=1024,d=b||2, e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f = Math.floor(Math.log(a)/Math.log(c));
+  return parseFloat((a/Math.pow(c,f)).toFixed(d))+ " " + e[f]
 }
